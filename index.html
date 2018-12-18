@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>管线系统</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/element ui.css">
+</head>
+
+<body>
+    <div id="app" class="clear Flexble">
+        <div id="header" class="clear header">
+            <div class="logo"><img src="images/logo.png" alt=""></div>
+            <div class="title">杭州钱江世纪城三维管线系统</div>
+            <div class="menu_right">
+                <ul class="list-inline">
+                    <router-link v-for='(value,key) in menus' v-bind:to='value.path' tag="li">{{value.text}}</router-link>
+                </ul>
+            </div>
+            <div class="line_png"><img src="images/line.png" alt=""></div>
+        </div>
+        <div style="display: flex;flex-wrap: nowrap;width:100%;height: 90%;" class="clear">
+            <div id="leftpanel" class="clear SubMenus ">
+                <router-view></router-view>
+            </div>
+            <div id="map" class="map" style="width:96%;height:95%;"></div>
+        </div>
+
+    </div>
+
+    <!--Home组件-->
+    <script type="text/x-template" id="home">
+        <div class="menubar">
+            <ul>
+                <li v-for='item in childrenMenus' v-on:click='handlerEvent(item.eventname)'><i :class='item.iconclass' tooltip='item.text'></i>{{item.text}}</li>
+            </ul>
+        </div>
+    </script>
+
+    <!-- Search组件 -->
+    <script type="text/x-template" id="search">
+        <div class="panel clear">
+            <div class="menubar">
+                <ul>
+                    <router-link v-for='item in childrenMenus' v-bind:to='item.path' tag="li">
+                        <i :class='item.iconclass' tooltip='item.text'></i> {{item.text}}
+                    </router-link>
+                </ul>
+            </div>
+            <div class="panelcontainer">
+                <div class="solid1">
+                    <div class="title-header">管线查询</div>
+                    <div class='btn-tool'>
+                        <button id="btnCircle">画圆查询</button>
+                        <button id="btnRectangle">画方查询</button>
+                        <button id="btnPolygon">任意多边形</button>
+                    </div>
+                </div>
+
+                <router-view class='routerView'>
+
+                </router-view>
+            </div>
+
+        </div>
+    </script>
+    <!-- search组件的子组件 -->
+    <script type="text/x-template" id='layermanage'>
+        <div>
+            <el-tree :data="layermanage" show-checkbox default-expand-all node-key="id" ref="tree" highlight-current :props="defaultProps">
+            </el-tree>
+        </div>
+    </script>
+    <script id="queryProperty" type="text/x-template">
+        <div id="pickup">
+            <div id="pickup_prop">
+                <ul class="prop">
+                    <li v-for="(item,i) in property" :key="i">
+                        <span>{{item.text}}</span>
+                        <span>{{item.details}}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </script>
+    <script id="queryByRoad" type="text/x-template">
+        <div class="path_query">
+            <div class="clear">
+                <select name="" id="" class="path_select">
+                   <option value="">道路名称</option>
+                   <option value="">道路设备</option>
+                   <option value="">道路详情</option>
+                </select>
+                <button class="path_search">查询</button>
+            </div>
+            <div class="path_detail" id="pathlist">
+                <ol id="pathscroll">
+                    <li v-for="item in pathList">{{item}}</li>
+                </ol>
+            </div>
+            <div class="path_page">
+                <div class="page_first">
+                    <button @click="firstPage"><<</button>
+                    <button @click="updatePage"><</button>
+                    <span><input class="page_input"  type="text" value="1"  v-model="inputValue"></span>
+                    <span>/</span>
+                    <span class="page_count">10</span>
+                    <button @click="addPage">></button>
+                    <button @click="lastPage">>></button>
+                </div>
+                <div class="page_all">
+                    <span class="page_item">30</span>
+                    <span>条</span>
+                    <span>/</span>
+                    <span>页</span>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="queryByInstallation" type="text/x-template">
+        <div class="facility_search">
+            <div class="path_detail facility_detail" id="facilitylist">
+                <ol id="facilityscroll">
+                    <li v-for="item in facilityList">{{item}}</li>
+                </ol>
+            </div>
+            <div class="path_page">
+                <div class="page_first">
+                    <button @click="firstPage"><<</button>
+                    <button @click="updatePage"><</button>
+                    <span><input class="page_input" type="text" value="1"  v-model="inputValue"></span>
+                    <span>/</span>
+                    <span class="page_count">10</span>
+                    <button @click="addPage">></button>
+                    <button @click="lastPage">>></button>
+                </div>
+                <div class="page_all">
+                    <span class="page_item">30</span>
+                    <span>条</span>
+                    <span>/</span>
+                    <span>页</span>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script id="queryByCondition" type="text/x-template">
+        <div class="query">
+            <p class="query_select">
+                <select name="" id="">
+                    <option value="">道路名称</option>
+                    <option value="">道路名称</option>
+                    <option value="">道路名称</option>
+                </select>
+            </p>
+            <p class="query_select">
+                <select name="" id="">
+                    <option value="">管线类型</option>
+                    <option value="">管线类型</option>
+                    <option value="">管线类型</option>
+                </select>
+            </p>
+            <button href="" class="query_serch">查询</button>
+            <div class="query_min" id="wrapper">
+                <ul class="min" id="scroller">
+                    <li>管线数据列表1</li>
+                    <li>管线数据列表2</li>
+                    <li>管线数据列表3</li>
+                    <li>管线数据列表4</li>
+                    <li>管线数据列表5</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表6</li>
+                    <li>管线数据列表10</li>
+                </ul>
+            </div>
+            <div class="path_page">
+                    <div class="page_first">
+                        <button ><<</button>
+                        <button ><</button>
+                        <span><input class="page_input" type="text" value="1"  ></span>
+                        <span>/</span>
+                        <span class="page_count">10</span>
+                        <button >></button>
+                        <button >>></button>
+                    </div>
+                    <div class="page_all">
+                        <span class="page_item">30</span>
+                        <span>条</span>
+                        <span>/</span>
+                        <span>页</span>
+                    </div>
+                </div>
+        </div>
+    </script>
+
+
+    <!-- statistics组件 -->
+    <script type="text/x-template" id="statistics">
+        <div class="panel">
+            <div class="menubar">
+                <ul>
+                    <router-link v-for='item in childrenMenus' v-bind:to='item.path' tag="li"><i :class='item.iconclass' tooltip='item.text'></i>{{item.text}}</router-link>
+                </ul>
+            </div>
+            <div class="panelcontainer">
+                <div class="solid1">
+                    <div class="title-header">统计分析</div>
+                    <div class='btn-tool'>
+                        <button id="btnCircle">画圆查询</button>
+                        <button id="btnRectangle">画方查询</button>
+                        <button id="btnPolygon">任意多边形</button>
+                    </div>
+                </div>
+
+                <router-view class='routerView'>
+                </router-view>
+            </div>
+
+        </div>
+    </script>
+    <script id="statisticsByRegion" type="text/x-template">
+        <div>根据区域统计</div>
+    </script>
+    <script id="statisticsByRoad" type="text/x-template">
+        <div>根据道路统计</div>
+    </script>
+    <script id="statisticsByMaterial" type="text/x-template">
+        <div>根据管线材质分类统计</div>
+    </script>
+    <script id="statisticsByPsize" type="text/x-template">
+        <div>管径分类统计</div>
+    </script>
+    <script id="statisticsBytype" type="text/x-template">
+        <div>管线分类统计</div>
+    </script>
+    <script id="statisticsByAttachment" type="text/x-template">
+        <div>附属物统计</div>
+    </script>
+    <script id="statisticsByShaft" type="text/x-template">
+        <div>管井统计</div>
+    </script>
+
+    <!--Others组件-->
+    <script type="text/x-template" id="others">
+        <div class="panel">
+            <div class="menubar">
+                <ul>
+                    <router-link v-for='item in childrenMenus' v-bind:to='item.path' tag="li"><i :class='item.iconclass' tooltip='item.text'></i>{{item.text}}</router-link>
+                </ul>
+            </div>
+            <div class="panelcontainer" style="display:none">
+
+                <router-view class='routerView'>
+
+                </router-view>
+            </div>
+
+        </div>
+    </script>
+
+    <!-- Other的子组件 -->
+    <script type="text/x-template" id="dig">
+        <div class='panel'>dig</div>
+    </script>
+    <script type="text/x-template" id="crosssection">
+        <div class="panel">crosssection</div>
+    </script>
+
+
+    <script src="js/config.js"></script>
+    <script src="js/lib/jquery-3.3.1.js"></script>
+    <script src="js/lib/earth.min.js"></script>
+    <script src="js/lib/geotools.js"></script>
+    <script src="js/lib/vue.min.js"></script>
+    <script src="js/lib/vue-router.js"></script>
+    <script src="js/lib/iscroll.js"></script>
+    <script src="js/lib/demoUtils.js"></script>
+    <script src="js/lib/element ui.js"></script>
+    <script src="js/menus.js"></script>
+    <script src="components/home.js"></script>
+    <script src="components/others.js"></script>
+    <script src="components/search.js"></script>
+    <script src="components/statistics.js"></script>
+    <script src="js/lib/bootstrap.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/index.js"></script>
+
+
+</body>
+
+</html>
